@@ -18,6 +18,8 @@ namespace ml = maal::boost;
 # include <dynamic-graph/signal-time-dependent.h>
 //# include <sot/core/exception-dynamic.hh>
 # include <sot/core/matrix-homogeneous.hh>
+# include <sot-dynamic/dynamic.h>
+# include "XmlRpcValue.h"
 
 namespace dynamicgraph
 {
@@ -56,7 +58,7 @@ namespace dynamicgraph
   ///
   /// This relies on jrl_dynamics_urdf to load the model and jrl-dynamics
   /// to realize the computation.
-  class RosRobotModel : public dynamicgraph::Entity
+  class RosRobotModel : public sot::Dynamic
   {
     DYNAMIC_GRAPH_ENTITY_DECL();
   public:
@@ -66,6 +68,7 @@ namespace dynamicgraph
 
     void loadUrdf(const std::string& filename);
     void loadFromParameterServer();
+    Vector curConf() const;
 
   protected:
     void buildSignals();
@@ -86,9 +89,9 @@ namespace dynamicgraph
 
     unsigned getDimension () const
     {
-      if (!robot_)
+      if (!m_HDR)
 	throw std::runtime_error ("no robot loaded");
-      return robot_->numberDof();
+      return m_HDR->numberDof();
     }
 
     ml::Vector& computeZmp (ml::Vector& zmp, int time);
@@ -99,12 +102,15 @@ namespace dynamicgraph
     ml::Vector& computeUpperJointLimits (ml::Vector&, int time);
 
   private:
-    CjrlHumanoidDynamicRobot* robot_;
+    //CjrlHumanoidDynamicRobot* robot_;
     std::list< ::dynamicgraph::SignalBase<int>* > genericSignalRefs_;
+
+    /// \brief Name of the topic where the joints list will be published
+    std::string topicName_;
 
     /// \brief When did the last computation occur?
     int lastComputation_;
-
+    /*
     /// \brief Robot current configuration.
     dynamicgraph::SignalPtr<ml::Vector,int> q_;
     /// \brief Robot current velocity.
@@ -123,6 +129,7 @@ namespace dynamicgraph
     dynamicgraph::SignalTimeDependent<ml::Vector,int> lowerJointLimits_;
     /// \brief Upper joints limits
     dynamicgraph::SignalTimeDependent<ml::Vector,int> upperJointLimits_;
+    */
   };
 } // end of namespace dynamicgraph.
 
