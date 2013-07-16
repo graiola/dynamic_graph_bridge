@@ -105,7 +105,7 @@ namespace dynamicgraph
     //CjrlHumanoidDynamicRobot* robot_;
     std::list< ::dynamicgraph::SignalBase<int>* > genericSignalRefs_;
 
-    /// \brief Name of the topic where the joints list will be published
+    /// \brief Name of the parameter where the joints list will be published
     std::string topicName_;
 
     /// \brief When did the last computation occur?

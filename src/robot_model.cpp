@@ -64,7 +64,7 @@ namespace dynamicgraph
 
   RosRobotModel::RosRobotModel (const std::string& name)
       : Dynamic(name,false),
-        topicName_ ("jrl_map"),
+        parameterName_ ("jrl_map"),
         lastComputation_ (std::numeric_limits<int>::min())/*,
         q_ (dynamicgraph::nullptr,
             "RosRobotModel(" + name + ")::input(vector)::position"),
@@ -158,7 +158,7 @@ namespace dynamicgraph
     m_HDR = parser.parse(filename);
 
     ros::NodeHandle nh;
-    nh.setParam(topicName_, parser.JointsNamesByRank_);
+    nh.setParam(parameterName_, parser.JointsNamesByRank_);
 
     //buildSignals ();
   }
@@ -178,7 +178,7 @@ namespace dynamicgraph
     m_HDR = parser.parseStream (robotDescription);
 
     ros::NodeHandle nh;
-    nh.setParam(topicName_, parser.JointsNamesByRank_);
+    nh.setParam(parameterName_, parser.JointsNamesByRank_);
 
     //buildSignals ();
   }
