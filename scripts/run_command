@@ -14,7 +14,7 @@ class RosShell(InteractiveConsole):
     def __init__(self):
         self.cache = ""
         InteractiveConsole.__init__(self)
-
+        
         rospy.loginfo('waiting for service...')
         rospy.wait_for_service('run_command')
         self.client = rospy.ServiceProxy(
@@ -50,6 +50,8 @@ class RosShell(InteractiveConsole):
 if __name__ == '__main__':
     import optparse
     manifest = roslib.manifest.load_manifest('dynamic_graph_bridge')
+    rospy.init_node('run_command', argv=sys.argv)
+    sys.argv = rospy.myargv(argv=None)
     parser = optparse.OptionParser(
         usage='\n\t%prog [options]',
         version='%%prog %s' % manifest.version)
