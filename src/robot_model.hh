@@ -106,7 +106,7 @@ namespace dynamicgraph
     std::list< ::dynamicgraph::SignalBase<int>* > genericSignalRefs_;
 
     /// \brief Name of the parameter where the joints list will be published
-    std::string topicName_;
+    std::string parameterName_;
 
     /// \brief When did the last computation occur?
     int lastComputation_;
