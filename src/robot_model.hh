@@ -18,8 +18,6 @@ namespace ml = maal::boost;
 # include <dynamic-graph/signal-time-dependent.h>
 //# include <sot/core/exception-dynamic.hh>
 # include <sot/core/matrix-homogeneous.hh>
-# include <sot-dynamic/dynamic.h>
-# include "XmlRpcValue.h"
 
 namespace dynamicgraph
 {
@@ -58,7 +56,7 @@ namespace dynamicgraph
   ///
   /// This relies on jrl_dynamics_urdf to load the model and jrl-dynamics
   /// to realize the computation.
-  class RosRobotModel : public sot::Dynamic
+  class RosRobotModel : public dynamicgraph::Entity
   {
     DYNAMIC_GRAPH_ENTITY_DECL();
   public:
@@ -68,25 +66,63 @@ namespace dynamicgraph
 
     void loadUrdf(const std::string& filename);
     void loadFromParameterServer();
-    Vector curConf() const;
 
   protected:
+    void buildSignals();
+
+    /// \brief Callback Computing the position of the body attached
+    /// to the provided joint.
+    ///
+    MatrixHomogeneous&
+    computeBodyPosition (CjrlJoint* joint,
+			 MatrixHomogeneous& position,
+			 int t);
+
+    /// \brief Update data if necessary by updating the robot
+    /// configuration/velocity/acceleration.
+    ///
+    /// \param t current time
+    void update (int t);
 
     unsigned getDimension () const
     {
-      if (!m_HDR)
+      if (!robot_)
 	throw std::runtime_error ("no robot loaded");
-      return m_HDR->numberDof();
+      return robot_->numberDof();
     }
 
-  private:
+    ml::Vector& computeZmp (ml::Vector& zmp, int time);
+    ml::Vector& computeCom (ml::Vector& com, int time);
+    ml::Matrix& computeJCom (ml::Matrix& jcom, int time);
 
-    /// \brief Name of the parameter where the joints list will be published
-    std::string parameterName_;
+    ml::Vector& computeLowerJointLimits (ml::Vector&, int time);
+    ml::Vector& computeUpperJointLimits (ml::Vector&, int time);
+
+  private:
+    CjrlHumanoidDynamicRobot* robot_;
+    std::list< ::dynamicgraph::SignalBase<int>* > genericSignalRefs_;
 
     /// \brief When did the last computation occur?
     int lastComputation_;
 
+    /// \brief Robot current configuration.
+    dynamicgraph::SignalPtr<ml::Vector,int> q_;
+    /// \brief Robot current velocity.
+    dynamicgraph::SignalPtr<ml::Vector,int> dq_;
+    /// \brief Robot current acceleration.
+    dynamicgraph::SignalPtr<ml::Vector,int> ddq_;
+
+    /// \brief Zero Momentum Point
+    dynamicgraph::SignalTimeDependent<ml::Vector,int> zmp_;
+    /// \brief Center of mass
+    dynamicgraph::SignalTimeDependent<ml::Vector,int> com_;
+    /// \brief Center of mass jacobian
+    dynamicgraph::SignalTimeDependent<ml::Matrix,int> jcom_;
+
+    /// \brief Lower joints limits
+    dynamicgraph::SignalTimeDependent<ml::Vector,int> lowerJointLimits_;
+    /// \brief Upper joints limits
+    dynamicgraph::SignalTimeDependent<ml::Vector,int> upperJointLimits_;
   };
 } // end of namespace dynamicgraph.
 
