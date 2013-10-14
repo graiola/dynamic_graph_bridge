@@ -23,6 +23,8 @@ set(PKG_CONFIG_ADDITIONAL_VARIABLES
   plugindir
   )
 
+add_required_dependency(bullet)
+
 add_required_dependency(jrl-mal)
 add_required_dependency(dynamic-graph)
 add_required_dependency(dynamic-graph-python)
@@ -36,6 +38,7 @@ rosbuild_add_library(ros_bridge
   include/dynamic_graph_bridge/ros_init.hh src/ros_init.cpp
   src/sot_to_ros.hh src/sot_to_ros.cpp
   )
+pkg_config_use_dependency(ros_bridge bullet)
 # Make sure rpath are preserved during the install as ROS dependencies
 # are not installed.
 set_target_properties(ros_bridge PROPERTIES BUILD_WITH_INSTALL_RPATH True)
@@ -46,6 +49,7 @@ macro(compile_plugin NAME)
   pkg_config_use_dependency(${NAME} jrl-mal)
   pkg_config_use_dependency(${NAME} dynamic-graph)
   pkg_config_use_dependency(${NAME} sot-core)
+  add_dependencies(${NAME} ros_bridge)
   target_link_libraries(${NAME} ros_bridge)
   set_target_properties(${NAME} PROPERTIES BUILD_WITH_INSTALL_RPATH True)
   install(TARGETS ${NAME} DESTINATION lib)
@@ -65,8 +69,8 @@ include(cmake/python.cmake)
 include_directories(${DYNAMIC_GRAPH_include_DIRS})
 link_directories(${DYNAMIC_GRAPH_LIBRARY_DIRS})
 
-compile_plugin(ros_import)
-compile_plugin(ros_export)
+compile_plugin(ros_publish)
+compile_plugin(ros_subscribe)
 compile_plugin(ros_time)
 
 compile_plugin(ros_joint_state)
@@ -79,12 +83,14 @@ rosbuild_add_library(ros_interpreter src/ros_interpreter.cpp)
 pkg_config_use_dependency(ros_interpreter jrl-mal)
 pkg_config_use_dependency(ros_interpreter dynamic-graph)
 pkg_config_use_dependency(ros_interpreter sot-core)
+add_dependencies(ros_interpreter ros_bridge)
 target_link_libraries(ros_interpreter ros_bridge)
 set_target_properties(ros_interpreter PROPERTIES BUILD_WITH_INSTALL_RPATH True)
 install(TARGETS ros_interpreter DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 # Stand alone remote dynamic-graph Python interpreter.
 rosbuild_add_executable(interpreter src/interpreter.cpp)
+add_dependencies(interpreter ros_interpreter)
 target_link_libraries(interpreter ros_interpreter)
 pkg_config_use_dependency(interpreter jrl-mal)
 pkg_config_use_dependency(interpreter dynamic-graph)
@@ -95,7 +101,7 @@ pkg_config_use_dependency(interpreter sot-dynamic)
 
 # Stand alone embedded intepreter with a robot controller.
 rosbuild_add_executable(geometric_simu src/geometric_simu.cpp src/sot_loader.cpp)
-rosbuild_link_boost(geometric_simu program_options) 
+rosbuild_link_boost(geometric_simu program_options)
 
 add_subdirectory(src)
 
